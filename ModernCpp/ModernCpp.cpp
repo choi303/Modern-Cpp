@@ -28,6 +28,7 @@ using namespace std;
 int main()
 {
 
-	cout << "Hello Modern Cpp built with CMake." << endl;
+	cout << "Hello Modern Cpp built with CMake." 
+		<< endl;
 	return 0;
 }
