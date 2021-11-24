@@ -7,5 +7,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 project ("ModernCpp")
 
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 # Include sub-projects.
 add_subdirectory ("ModernCpp")
