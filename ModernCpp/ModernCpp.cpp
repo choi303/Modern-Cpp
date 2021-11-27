@@ -2071,7 +2071,7 @@ int main() {
 
 // TEMPLATES
 
-
+/*
 //_____TEMPLATES BASICS_____
 
 template<typename T>
@@ -2101,5 +2101,439 @@ int main() {
 
 	return 0;
 }
+*/
+
+/*
+_____TEMPLATE ARGUMENT DEDUCATION_____
+
+template<typename T>
+inline constexpr T Max(T x, T y) noexcept {
+	cout << typeid(T).name() << endl;
+	return x > y ? x : y;
+}
+
+int main() {
+	Max(static_cast<float>(3), 5.5f);
+	Max<double>(3, 6.2);
+	int(*pfn)(int, int) = Max;
+
+
+	return 0;
+}
+*/
+
+/*
+//_____Explicit Specialization_____
+
+//Primary Template
+template<typename T>
+inline constexpr T Max(T x, T y) noexcept {
+	cout << typeid(T).name() << endl;
+	return x > y ? x : y;
+}
+
+//Explicit Instantiation
+template char Max(char x, char y);
+
+//Explicit Specialization
+template<> inline constexpr const char* Max(const char* x, const char* y) {
+	cout << "Max<const char*>()" << endl;
+	return strcmp(x, y) > 0 ? x : y;
+}
+
+int main() {
+	const char* b{ "B" };
+	const char* a{ "A" };
+	auto s = Max(a, b);
+	cout << s << endl;
+
+	return 0;
+}
+*/
+
+/*
+_____NON-TYPE TEMPLATE ARGUMENTS_____
+
+template<int size>
+inline constexpr void Print() noexcept {
+	char buffer[size];
+	cout << size << endl;
+}
+//template<typename T>
+//inline constexpr T Sum(T* pArr, int size) {
+//	T sum{};
+//	for (int i = 0; i < size; ++i) {
+//		sum += pArr[i];
+//	}
+//	return sum;
+//}
+
+template<typename T, int size>
+inline constexpr T Sum(T(&parr)[size]) {
+	T sum{};
+	for (int i = 0; i < size; ++i) {
+		sum += parr[i];
+	}
+	return sum;
+}
+
+int main() {
+	int arr[]{ 3,1,9,7 };
+	//int(&ref)[5] = arr;
+	int sum = Sum(arr);
+	cout << sum << endl;
+ 
+	return 0;
+}
+*/
+
+/*
+_____PERFECT FORWARDING_____
+
+#include "OOP/Integer.hpp"
+
+class Employee {
+	string m_Name;
+	Integer m_Id;
+public:
+	template<typename T1, typename T2>
+	Employee(T1&& name, T2&& id) :
+		m_Name{ std::forward<T1>(name) },
+		m_Id{ std::forward<T2>(id) } {
+
+	}
+};
+template<typename T1, typename T2>
+Employee* Create(T1&& a, T2&& b) {
+	return new Employee(std::forward<T1>(a), 
+		std::forward<T2>(b));
+}
+
+int main() {
+	//Employee emp{ "Choi", Integer{100} };
+	Integer val{ 100 };
+	Employee emp3{ string{"Choi"}, val };
+
+	return 0;
+}
+*/
+
+/*
+_____VARIADIC TEMPLATES_____
+
+#include "OOP/Integer.hpp"
+
+void Print() {
+	cout << endl;
+}
+
+template<typename T, typename... Params>
+//Function parameter pack
+void Print(T&& a, Params&&... args) {
+	std::cout << a;
+	if (sizeof...(args) != 0) {
+		cout << ",";
+	}
+	Print(forward<Params>(args)...);
+}
+
+int main() {
+	//Print({ 1, 2.5, 3, 4 });
+	Integer val{ 1 };
+	Print(0, val, Integer{ 2 });
+
+	return 0;
+}
+*/
+
+/*
+_____CLASS TEMPLATES_____
+
+template<typename T, int size>
+class Stack {
+	T m_Buffer[512];
+	int m_Top{ -1 };
+public:
+	Stack() = default;
+	Stack(const Stack& obj) {
+		m_Top = obj.Top;
+		for (int i = 0; i < m_Top; ++i) {
+			m_Buffer[i] = obj.m_Buffer[i];
+		}
+	}
+	void Push(const T& elem) {
+		m_Buffer[++m_Top] = elem;
+	}
+	void Pop();
+	const T& Top() const {
+		return m_Buffer[m_Top];
+	}
+	bool IsEmpty() {
+		return m_Top == -1;
+	}
+	static Stack Create();
+};
+
+template<typename T, int size>
+void Stack<T, size>::Pop() {
+	--m_Top;
+}
+
+template<typename T, int size>
+Stack<T, size> Stack<T, size>::Create() {
+	return Stack<T, size>();
+}
+
+int main() {
+	Stack<float, 10> s = Stack<float, 10>::Create();
+	s.Push(3);
+	s.Push(1);
+	s.Push(6);
+	s.Push(9);
+
+	while (!s.IsEmpty()) {
+		cout << s.Top() << " ";
+		s.Pop();
+	}
+
+	return 0;
+}
+*/
+
+/*
+_____CLASS TEMPLATE EXPLICIT SPECIALIZATION_____
+
+#include <vector>
+
+template<typename T>
+class PrettyPrinter {
+	T* m_pData;
+public:
+	PrettyPrinter(T* data) : m_pData(data) {
+
+	}
+	void Print() {
+		cout << "{" << *m_pData << "}" << endl;
+	}
+	T* GetData() {
+		return m_pData;
+	}
+};
+template<>
+void PrettyPrinter<std::vector<int>>::Print() {
+	cout << "{";
+	for (const auto& x : *m_pData) {
+		cout << x;
+	}
+	cout << "}";
+}
+
+//template<>
+//class PrettyPrinter<std::vector<int>> {
+//	std::vector<int>* m_pData;
+//public:
+//	PrettyPrinter(std::vector<int>* data) : m_pData(data) {
+//
+//	}
+//	void Print() {
+//		cout << "{";
+//		for (const auto& x : *m_pData) {
+//			cout << x;
+//		}
+//		cout << "}";
+//	}
+//	std::vector<int>* GetData() {
+//		return m_pData;
+//	}
+//};
+
+int main() {
+	//int data = 5;
+	//float f = 8.2f;
+	//PrettyPrinter<int> p1(&data);
+	//p1.Print();
+	//PrettyPrinter<float> p2(&f);
+	//p2.Print();
+
+	char* p{ "Hello world" };
+	PrettyPrinter<char> p3(p);
+	p3.Print();
+	char* pData = p3.GetData();
+	std::vector<int> v{ 1,2,3,4,5 };
+	PrettyPrinter<std::vector<int>> pv(&v);
+
+	return 0;
+}
+*/
+
+/*
+_____CLASS TEMPLATE PARTIAL SPECIALIZATION_____
+
+#include <vector>
+
+template<typename T, int columns>
+class PrettyPrinter {
+	T* m_pData;
+public:
+	PrettyPrinter(T* data) : m_pData(data) {
+
+	}
+	void Print() {
+		cout << "Columns: " << columns << endl;
+		cout << "{" << *m_pData << "}" << endl;
+	}
+	T* GetData() {
+		return m_pData;
+	}
+};
+
+template<typename T>
+class PrettyPrinter<T, 80> {
+	T* m_pData;
+public:
+	PrettyPrinter(T* data) : m_pData(data) {
+
+	}
+	void Print() {
+		cout << "Using 80 Columns: " << columns << endl;
+		cout << "{" << *m_pData << "}" << endl;
+	}
+	T* GetData() {
+		return m_pData;
+	}
+};
+
+int main() {
+	int data = 800;
+	PrettyPrinter<int, 40> p{ &data };
+	p.Print();
+
+	return 0;
+}
+*/
+
+/*
+_____TYPEDEF, TYPE ALIAS & ALIAS TEMPLATES_____
+
+const char* GetErrorMessage(int errorNo) {
+	return "Empty";
+}
+
+typedef const char* (*PFN)(int);
+using PFN = const char* (*)(int);
+void ShowError(PFN pfn) {
+
+}
+
+int main() {
+	
+	PFN pfn = GetErrorMessage;
+	ShowError(pfn);
+	return 0;
+}
+*/
+
+/*
+_____TYPE TRAITS_____
+
+template<typename T>
+void Check(T&&) {
+	cout << std::boolalpha;
+	cout << "Is reference?" << is_reference<T>::value <<
+		endl;
+
+	cout << "After removeing: " <<
+		is_reference<typename remove_reference<T>::type>::value << endl;
+}
+
+int main() {
+	Check(5);
+	int value{};
+	Check(value);
+
+	return 0;
+}
+*/
+
+/*
+_____STATIC EXPRESSIONS_____
+
+int main() {
+	static_assert(sizeof(void*) != 4, "Compile in 64-bit mode only");
+
+	return 0;
+}
+*/
 
 // TEMPLATES END
+
+// LAMBDA EXPRESSIONS (CPP 11)
+
+/*
+_____FUNCTION POINTERS_____
+
+using Comparator = bool(*)(int, int);
+template<typename T, int size>
+void Sort(T(&arr)[size], Comparator comp) {
+	for (int i = 0; i < size - 1; ++i) {
+		for (int j = 0; j < size - 1; ++j) {
+			if (comp(arr[j], arr[j + 1])) {
+				T temp = arr[j];
+				arr[j] = arr[j + 1];
+				arr[j + 1] = temp;
+			}
+		}
+	}
+}
+
+bool Comp(int x, int y) {
+	return x > y;
+}
+
+bool Comp1(int x, int y) {
+	return x < y;
+}
+
+int main() {
+	int arr[]{ 1,6,8,4,0 };
+	for (auto x : arr) {
+		cout << x << " ";
+	}
+	cout << endl;
+	Sort(arr, Comp1);
+	for (auto x : arr) {
+		cout << x << " ";
+	}
+	cout << endl;
+
+	return 0;
+}
+*/
+
+/*
+_____LAMBDA EXPRESSIONS_____
+*/
+
+template<typename T>
+inline constexpr auto Max = [](T x, T y)->T {
+	if (x > y)
+		return x;
+	else
+		return y;
+};
+template<typename T>
+inline constexpr auto Greater = [](T x, T y)->T {
+	if (x > y)
+		return true;
+	else
+		return false;
+};
+
+int main() {
+	
+	cout << Max<int>(5, 2) << endl;
+	cout << Greater<int>(5, 3) << endl;
+	return 0;
+}
+
+// LAMBDA EXPRESSIONS (CPP 11) END
